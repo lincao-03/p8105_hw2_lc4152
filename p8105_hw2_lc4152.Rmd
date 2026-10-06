@@ -277,7 +277,7 @@ amyloid_only_df =
 nrow(baseline_only_ddf)
 nrow(amyloid_only_df)
 ```
-After applying the baseline inclusion criteria, eight participants appear only in the baseline dataset, and 16 appear only in the amyloid dataset. The latter group includes four participants excluded from the baseline dataset and 12 participants absent from the original baseline file.
+After applying the baseline inclusion criteria, `r nrow(baseline_only_ddf)` participants appear only in the baseline dataset, and `r nrow(amyloid_only_df)` appear only in the amyloid dataset.
 
 ```{r}
 mci_df = 
@@ -291,7 +291,7 @@ mci_df |>
   distinct(id) |>
   nrow()
 ```
-The merged dataset contains 471 participants and 2,355 observations, with eight variables. Each row represents one participant at one visit and includes baseline demographic information, APOE4 status, MCI onset age, time since baseline, and amyloid ratio.
+The merged dataset contains 471 participants and 2,355 observations, with 8 variables. Each row represents one participant at one visit and includes baseline demographic information, APOE4 status, MCI onset age, time since baseline, and amyloid ratio.
 
 ```{r}
 write_csv(
