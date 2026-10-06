@@ -84,35 +84,126 @@ There are 465 distinct stations, of which 84 are ADA compliant. Among entrances 
 
 ## Problem 2
 
+Mr.Trash:
 ```{r}
 mr_trash_df = 
   read_excel(
     "data/202610 Trash Wheel Collection Data.xlsx",
     sheet = "Mr. Trash Wheel",
     range = cell_cols("A:N"),
-    skip = 1)
+    skip = 1
+  ) |>
+  janitor::clean_names() |>
+  filter(!is.na(dumpster)) |>
+  mutate(
+    year = as.integer(year),
+    month = str_trim(month),
+    sports_balls = as.integer(round(sports_balls)),
+    trash_wheel = "Mr. Trash Wheel"
+  )
 
 ```
 
+Professor trash:
+```{r}
+professor_trash_df =
+  read_excel(
+    "data/202610 Trash Wheel Collection Data.xlsx",
+    sheet = "Professor Trash Wheel",
+    range = cell_cols("A:M"),
+    skip = 1
+  ) |>
+  janitor::clean_names() |>
+  filter(!is.na(dumpster)) |>
+  mutate(
+    year = as.integer(year),
+    month = str_trim(month),
+    plastic_bottles = as.numeric(plastic_bottles),
+    trash_wheel = "Professor Trash Wheel"
+  )
+```
 
+Gwynnda:
+```{r}
+gwynnda_df =
+  read_excel(
+    "data/202610 Trash Wheel Collection Data.xlsx",
+    sheet = "Gwynnda the Good Wheel of the W",
+    range = cell_cols("A:L"),
+    skip = 1
+  ) |>
+  janitor::clean_names() |>
+  filter(!is.na(dumpster)) |>
+  mutate(
+    year = as.integer(year),
+    month = str_trim(month),
+    trash_wheel = "Gwynnda"
+  )
+```
 
+Combine:
+```{r}
+trash_wheel_df =
+  bind_rows(
+    mr_trash_df,
+    professor_trash_df,
+    gwynnda_df
+  )
 
+dim(trash_wheel_df)
+```
 
+```{r}
+professor_weight =
+  trash_wheel_df |>
+  filter(trash_wheel == "Professor Trash Wheel") |>
+  summarize(
+    total_weight = sum(weight_tons, na.rm = TRUE)
+  ) |>
+  pull(total_weight)
 
+professor_weight
+```
 
+```{r}
+gwynnda_cigarettes =
+  trash_wheel_df |>
+  filter(
+    trash_wheel == "Gwynnda",
+    year == 2022,
+    month == "June"
+  ) |>
+  summarize(
+    total_cigarettes = sum(cigarette_butts, na.rm = TRUE)
+  ) |>
+  pull(total_cigarettes)
 
+gwynnda_cigarettes
+```
 
-
-
-
-
-
-
-
-
-
-
-
+The combined dataset contains `r nrow(trash_wheel_df)` observations from Mr. Trash Wheel, Professor Trash Wheel, and Gwynnda. Each observation represents one dumpster collection. Key variables include the collection date, weight in tons, volume in cubic yards, and counts of items such as plastic bottles and cigarette butts. I cleaned the column names, removed rows without dumpster-specific data, standardized the year and month variables, and rounded sports balls to integers. I also added a variable identifying each trash wheel before combining the datasets. Professor Trash Wheel collected a total of `r professor_weight` tons of trash, and Gwynnda collected `r gwynnda_cigarettes` cigarette butts in June 2022.
 
 
 ## Problem 3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
