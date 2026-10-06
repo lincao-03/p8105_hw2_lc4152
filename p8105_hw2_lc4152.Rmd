@@ -1,0 +1,118 @@
+---
+title: "p8105_hw2_lc4152"
+output: github_document
+---
+
+## Problem 1
+
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+```{r}
+subway_df = 
+  read_csv(file = "data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") |>
+  janitor::clean_names() |>
+  select(line:entry, vending, ada) |>
+  mutate(
+    entry = case_match(
+      entry,
+      "YES" ~ TRUE,
+      "NO" ~ FALSE
+    )
+  )
+dim(subway_df)
+```
+This dataset contains information about NYC subway entrances and exits, including the line, station name, station coordinates, routes served, entry permission, vending availability, entrance type, and ADA compliance. I cleaned the column names, selected the required variables, and converted entry from YES/NO to TRUE/FALSE. The resulting dataset has 1,868 rows and 19 columns. The data are not yet tidy because routes served are spread across multiple columns, from route1 to route11.
+
+Number of stations:
+```{r}
+subway_df |>
+  distinct(line, station_name) |>
+  nrow()
+```
+
+Number of stations are ADA compliant:
+```{r}
+subway_df |>
+  filter(ada == TRUE) |>
+  distinct(line, station_name) |>
+  nrow()
+```
+
+Proportion:
+```{r}
+subway_df |>
+  filter(vending == "NO") |>
+  summarize(
+    proportion_allow_entry = mean(entry)
+  )
+```
+
+Reformat route:
+```{r}
+subway_long_df = 
+  subway_df |>
+  pivot_longer(
+    route1:route11,
+    names_to = "route_number",
+    names_prefix = "route",
+    values_to = "route_name",
+    values_transform = list(route_name = as.character),
+    values_drop_na = TRUE
+  )
+```
+
+Number of distinct stations serve A train:
+```{r}
+subway_long_df |>
+  filter(route_name == "A") |>
+  distinct(line, station_name) |>
+  nrow()
+```
+
+Number of ADA compliant among those serve A:
+```{r}
+subway_long_df |>
+  filter(route_name == "A", ada == TRUE) |>
+  distinct(line, station_name) |>
+  nrow()
+```
+
+There are 465 distinct stations, of which 84 are ADA compliant. Among entrances and exits without vending, 37.7% allow entry. After converting the route columns to long format, I found that 60 distinct stations serve the A train, and 17 of these stations are ADA compliant.
+
+## Problem 2
+
+```{r}
+mr_trash_df = 
+  read_excel(
+    "data/202610 Trash Wheel Collection Data.xlsx",
+    sheet = "Mr. Trash Wheel",
+    range = cell_cols("A:N"),
+    skip = 1)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Problem 3
