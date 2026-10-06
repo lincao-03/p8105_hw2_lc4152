@@ -186,12 +186,119 @@ The combined dataset contains `r nrow(trash_wheel_df)` observations from Mr. Tra
 
 ## Problem 3
 
+Clean data:
+```{r}
+baseline_raw_df = 
+  read_csv(
+    "data/MCI_baseline.csv",
+    skip = 1,
+    na = c("", "NA", ".")
+  ) |>
+  janitor::clean_names() 
+
+baseline_df = 
+  baseline_raw_df |>
+  filter(is.na(age_at_onset) | age_at_onset > current_age) |>
+  mutate(
+    sex = factor(
+      sex,
+      levels = c(0, 1),
+      labels = c("Female", "Male")
+    ),
+    apoe4 = factor(
+      apoe4,
+      levels = c(0, 1),
+      labels = c("Non-carrier", "Carrier")
+    )
+  )
+
+```
+
+Calculation:
+```{r}
+nrow(baseline_raw_df)
+nrow(baseline_df)
+baseline_df |>
+  summarize(
+    developed_mci = sum(!is.na(age_at_onset)),
+    mean_baseline_age = mean(current_age)
+  )
+baseline_df |>
+  filter(sex == "Female") |>
+  summarise(proportion_carrier = mean(apoe4 == "Carrier"))
+```
+The baseline file contains 483 participants. I skipped the first descriptive row, cleaned the column names, and treated periods as missing values. I excluded four participants whose MCI onset age was less than or equal to their baseline age, leaving 479 eligible participants. Sex and APOE4 status were converted to categorical variables. Among eligible participants, 93 developed MCI during follow-up. The average baseline age was 65.03 years, and 30% of women were APOE4 carriers.
+
+```{r}
+amyloid_df = 
+  read_csv(
+    "data/mci_amyloid.csv",
+    skip = 1,
+    na = c("", "NA", ".")
+  ) |>
+  janitor::clean_names() |>
+  rename(
+    id = study_id,
+    time_0 = baseline
+  ) |>
+  pivot_longer(
+    starts_with("time_"),
+    names_to = "time",
+    names_prefix = "time_",
+    values_to = "amyloid_ratio"
+  ) |>
+  mutate(
+    time = as.numeric(time)
+  )
 
 
+```
+I skipped the first descriptive row of the amyloid file, cleaned the column names, and renamed the participant ID to match the baseline dataset. I converted the five visit columns to long format, with separate variables for time since baseline and amyloid ratio. The dataset contains 487 participants and 2,435 participant-visit records at years 0, 2, 4, 6, and 8.
 
+```{r}
+amyloid_ids_df = 
+  amyloid_df |>
+  distinct(id)
 
+baseline_only_ddf = 
+  anti_join(
+    baseline_df,
+    amyloid_ids_df,
+    by = "id"
+  )
 
+amyloid_only_df = 
+  anti_join(
+    amyloid_ids_df,
+    baseline_df,
+    by = "id"
+  )
 
+nrow(baseline_only_ddf)
+nrow(amyloid_only_df)
+```
+After applying the baseline inclusion criteria, eight participants appear only in the baseline dataset, and 16 appear only in the amyloid dataset. The latter group includes four participants excluded from the baseline dataset and 12 participants absent from the original baseline file.
+
+```{r}
+mci_df = 
+  inner_join(
+    baseline_df,
+    amyloid_df,
+    by = "id"
+  )
+dim(mci_df)
+mci_df |>
+  distinct(id) |>
+  nrow()
+```
+The merged dataset contains 471 participants and 2,355 observations, with eight variables. Each row represents one participant at one visit and includes baseline demographic information, APOE4 status, MCI onset age, time since baseline, and amyloid ratio.
+
+```{r}
+write_csv(
+  mci_df,
+  "data/mci_combined.csv"
+)
+```
 
 
 
